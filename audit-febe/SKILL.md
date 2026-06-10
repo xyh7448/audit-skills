@@ -19,16 +19,16 @@ description: "前后端对齐审计（FE+BE）。用法：/audit-febe <模块名
 
 ### 第一步：收集后端 API 清单
 
-1. 用 `Grep` 搜索 `app/routers/` 下模块相关路由文件
-2. 用 `SearchSymbol` 追踪每个路由函数的参数 Schema 和返回类型
-3. 用 `Grep` 在 `app/main.py` 检查路由是否已挂载（`include_router`）
-4. 提取每个 API 的：URL、Method、参数 Schema（Pydantic）、返回 Schema
+1. 用 `Grep` 搜索模块相关的路由/控制器文件（按项目实际结构）
+2. 用 `SearchSymbol` 追踪每个路由函数的参数和返回类型
+3. 用 `Grep` 检查路由是否已在应用入口挂载
+4. 提取每个 API 的：URL、Method、参数 Schema、返回 Schema
 
 ### 第二步：收集前端调用清单
 
-1. 用 `Grep` 搜索 `templates/` 中的 `fetch\(|axios\.|\$.ajax|new WebSocket|\.send\(`
-2. 用 `Grep` 搜索 `static/js/` 和 `static/report-dashboard/` 中的 API 调用
-3. 用 `Grep` 搜索 Jinja2 模板中的 `render_template\(` 调用，追踪传入的 context 变量
+1. 用 `Grep` 搜索前端文件中的 API 调用（`fetch(`、`axios.`、`$.ajax`、`new WebSocket`、`useQuery`、`useSWR` 等）
+2. 用 `Grep` 搜索前端组件/页面文件中的 HTTP 请求
+3. 如果项目用服务端渲染，搜索模板渲染函数调用，追踪传入的 context 变量
 4. 用 `Grep` 搜索 WebSocket 消息格式（`type.*payload|action.*data`）
 5. 提取每个前端调用的：URL、Method、发送参数、期望返回
 
@@ -53,7 +53,7 @@ description: "前后端对齐审计（FE+BE）。用法：/audit-febe <模块名
 - **多余字段**：后端返回但前端没用
 - **命名不一致**：同一数据前后端字段名不同（如 `hsCode` vs `hs_code`）
 
-方法：追踪后端 Pydantic Response Schema → 前端模板/JS 中的字段引用
+方法：追踪后端 Response Schema/类型定义 → 前端模板/组件中的字段引用
 
 #### 3. 类型一致性
 
@@ -127,8 +127,8 @@ TODO, FIXME, temporary, 临时, 模拟, 假数据
 
 ## 注意事项
 
-- **Jinja2 Context 追踪**：用 `Grep` 搜索 `render_template.*模板名`，检查传入的 context dict 是否包含模板中所有 `{{ variable }}` 引用
-- 重点关注 WebSocket 消息的字段对齐（chat 模块）——用 `Grep` 搜索 `json\.dumps.*type|send_text|send_json` 追踪 WS 消息格式
-- 检查 `static/report-dashboard/` 的 React 组件 API 调用
-- 前端没有 TypeScript 时，通过 JS 代码中的字段访问推断期望类型
-- 用 `SearchSymbol` 追踪后端 Pydantic Response Schema 的字段定义
+- **服务端渲染 Context 追踪**：用 `Grep` 搜索模板渲染函数，检查传入的 context 是否包含模板中所有变量引用
+- 重点关注 WebSocket 消息的字段对齐——用 `Grep` 搜索 WS 发送/接收代码追踪消息格式
+- 检查前端组件（React/Vue/模板）的 API 调用是否与后端匹配
+- 前端没有类型系统时，通过代码中的字段访问推断期望类型
+- 用 `SearchSymbol` 追踪后端 Response Schema 的字段定义

@@ -21,18 +21,18 @@ description: "生产就绪审计。用法：/audit-prod <模块名>，如 /audit
 
 | 检查项 | 分值 | 方法 |
 |--------|------|------|
-| API 认证/鉴权 | 5 | 检查路由是否有 `Depends(get_current_user)` 等保护 |
+| API 认证/鉴权 | 5 | 检查路由是否有认证保护（如 `Depends(get_current_user)`、`@login_required`、JWT 中间件等） |
 | SQL 注入防护 | 3 | 检查是否有 raw SQL、`text()` 拼接 |
-| XSS 防护 | 2 | 检查模板是否自动转义、`|safe` 使用 |
+| XSS 防护 | 2 | 检查模板是否自动转义、`|safe`/`dangerouslySetInnerHTML` 使用 |
 | 敏感信息泄露 | 3 | 检查日志/错误响应是否暴露 API Key、内部路径 |
-| CORS 配置 | 2 | 检查 `app/main.py` CORS 中间件配置 |
+| CORS 配置 | 2 | 检查 CORS 中间件配置 |
 
 ### 2. 权限控制（10 分）
 
 | 检查项 | 分值 |
 |--------|------|
 | 用户只能访问自己的数据 | 5 |
-| Admin/User 权限隔离（符合 `ADMIN_BOUNDARY.md`） | 5 |
+| 多角色权限隔离（如 Admin/User） | 5 |
 
 ### 3. 缓存策略（10 分）
 
@@ -76,7 +76,7 @@ description: "生产就绪审计。用法：/audit-prod <模块名>，如 /audit
 |--------|------|
 | 有索引覆盖高频查询 | 3 |
 | 连接池配置合理 | 2 |
-| Alembic 迁移同步 | 3 |
+| Alembic/Prisma/Django 迁移同步 | 3 |
 | 无大事务/长锁 | 2 |
 
 ### 8. 部署配置（10 分）
@@ -85,7 +85,7 @@ description: "生产就绪审计。用法：/audit-prod <模块名>，如 /audit
 |--------|------|
 | Dockerfile 配置正确 | 2 |
 | docker-compose 服务完整 | 2 |
-| 环境变量有 `.env.example` 文档 | 3 |
+| 环境变量有文档（`.env.example` 或类似） | 3 |
 | 启动脚本/健康检查 | 3 |
 
 ### 9. 环境变量（5 分）
@@ -94,7 +94,7 @@ description: "生产就绪审计。用法：/audit-prod <模块名>，如 /audit
 |--------|------|
 | 所有必要变量有默认值或文档 | 2 |
 | 无硬编码的 Key/URL | 2 |
-| `app/config.py` 集中管理 | 1 |
+| 配置集中管理（如 `config.py`、`.env`、`settings.ts`） | 1 |
 
 ### 10. 成本风险（10 分）
 
@@ -171,7 +171,7 @@ description: "生产就绪审计。用法：/audit-prod <模块名>，如 /audit
 ## 注意事项
 
 - 严格打分，不要放水；生产事故的成本远高于延期上线
-- 重点关注 LLM 调用成本（Token 消耗、超时重试放大效应）
-- 检查 `EXPORT_LLM_TIMEOUT_SECONDS`、`EXPORT_NODE_TIMEOUT_SECONDS` 等关键超时配置
-- 检查 Worker 进程（`run_export_worker.py`、`run_export_cpu_worker.py`）的异常恢复
-- Admin 模块检查是否符合 `ADMIN_BOUNDARY.md` 隔离要求
+- 如果项目有 LLM 调用，重点关注 Token 成本和超时重试放大效应
+- 检查项目中的关键超时配置环境变量
+- 检查 Worker/后台进程/定时任务的异常恢复机制
+- 如果项目有多角色系统，检查权限隔离是否符合项目规范

@@ -5,7 +5,7 @@ description: "CTO 终审。用法：/cto <模块名>，如 /cto export-assessmen
 
 # CTO 审计（CTO Review）
 
-你是 Alpha Global Pro 的 CTO。
+你是这个项目的 CTO。
 
 你的职责不是找代码 Bug，而是判断：**这个功能是否达到商业上线标准。**
 
@@ -48,7 +48,7 @@ description: "CTO 终审。用法：/cto <模块名>，如 /cto export-assessmen
 
 ### 2. 数据真实性（权重 25%）
 
-> 这是 Alpha Global Pro 最重要的维度。如果数据是假的，整个产品就没有价值。
+> 这是最重要的维度。如果数据是假的，整个产品就没有价值。
 
 回答以下问题：
 
@@ -60,9 +60,9 @@ description: "CTO 终审。用法：/cto <模块名>，如 /cto export-assessmen
 
 **检查方法**：
 - 追踪核心数据字段从展示到源头的完整链路
-- 检查 `DATA_MODE` 不同模式下的数据行为
+- 检查项目是否有环境模式切换导致数据源变化
 - 搜索 mock/fake/hardcode/sample 关键词
-- 验证关键 API（Comtrade、World Bank、SerpAPI）的可用性
+- 验证关键外部 API 的可用性
 
 ### 3. 技术架构（权重 15%）
 
@@ -71,7 +71,7 @@ description: "CTO 终审。用法：/cto <模块名>，如 /cto export-assessmen
 - 架构是否清晰分层（Router → Service → Model）？
 - 是否有过度设计（不必要的抽象层）？
 - 是否有技术债务（TODO、临时方案、Workaround）？
-- 是否符合项目已有架构规范（`AGENTS.md` 规则）？
+- 是否符合项目已有架构规范（查看 `AGENTS.md`、`CONVENTIONS.md` 等）？
 - 关键路径是否有性能瓶颈？
 
 **检查方法**：
@@ -83,8 +83,7 @@ description: "CTO 终审。用法：/cto <模块名>，如 /cto export-assessmen
 
 回答以下问题：
 
-- 能否轻松添加新的目标国家？
-- 能否轻松添加新的数据源？
+- 能否轻松添加新的业务场景/数据源/集成对象？
 - 能否支持更多用户并发？
 - 数据模型是否预留了扩展空间？
 - 服务接口是否足够抽象？
@@ -103,8 +102,7 @@ description: "CTO 终审。用法：/cto <模块名>，如 /cto export-assessmen
 
 回答以下问题：
 
-- LLM 调用成本是否可控？（每次评估消耗多少 Token？）
-- 外部 API 成本是否可持续？（SerpAPI、Comtrade 等）
+- 外部服务调用成本是否可控？（API 调用费用、LLM Token 等）
 - 是否有合理的付费转化路径？
 - 功能是否能支撑规模化推广？
 
@@ -174,7 +172,7 @@ description: "CTO 终审。用法：/cto <模块名>，如 /cto export-assessmen
 ## 注意事项
 
 - 站在 CTO 角度思考，不是工程师角度；重点是商业价值而非代码风格
-- 对数据真实性零容忍：Alpha Global Pro 的核心卖点是“基于真实数据的出海决策”
+- 对数据真实性零容忍：如果产品核心卖点是数据驱动，数据造假就是一票否决
 - 不要因为“差不多了”就放水；C 级就是 C 级，明确告诉团队不能上线
 - 每次审计对比历史结果，追踪改进趋势
 - **前置审计结果是核心依据**：`/audit-feat` 综合评分 < 6 或 `/audit-data` 假数据 > 20%，CTO 直接判 C 级

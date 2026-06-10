@@ -72,42 +72,20 @@ description: "数据源真实性审计。用法：/audit-data <模块名>，如 
    - 是否有默认值兜底
    - 数据格式是否一致
 
-### 第四步：按模块类型深入检查
+### 第四步：项目特有数据源检查
 
-根据模块类型选择对应的检查策略：
+根据项目实际的数据获取方式，用 `Grep` 搜索以下常见模式：
 
-**出海评估类模块**（export/market）：
+| 数据类型 | 搜索关键词示例 | 期望数据源 |
+|---------|-------------|----------|
+| 外部 API 数据 | `api_client\|httpx\|requests\.get\|axios` | 第三方 API |
+| 爬虫数据 | `crawler\|scraper\|spider\|fetch_page` | 爬虫服务 |
+| AI/LLM 数据 | `llm_client\|openai\|anthropic\|embedding` | AI API |
+| 缓存数据 | `redis\|cache\|get_cached\|TTL` | 缓存层 |
+| 文件/上传数据 | `upload\|s3\|storage\|file_path` | 文件存储 |
+| 用户输入数据 | `form_data\|request\.body\|input` | 用户提交 |
 
-用 `Grep` 搜索以下数据获取路径：
-
-| 数据维度 | 搜索关键词 | 期望数据源 |
-|---------|-----------|----------|
-| 贸易数据 | `comtrade\|trade_stats` | UN Comtrade / DB 缓存 |
-| 关税数据 | `tariff\|wto_tariff` | WTO Tariff |
-| 市场趋势 | `google_trends\|serpapi` | SerpAPI → Google Trends |
-| 宏观经济 | `worldbank\|world_bank` | World Bank API v2 |
-| 汇率 | `exchange_rate\|frankfurter` | Frankfurter / ExchangeRate-API |
-| 电商信号 | `aliexpress\|ebay.*crawl` | AliExpress/eBay 爬虫 |
-| 社交平台 | `shopee\|lazada\|tiktok\|reddit` | Market Intelligence 爬虫 |
-| 实时定价 | `fetch_real_market_price` | eBay 公开页爬取 |
-| 物流费率 | `air_freight\|logistics_estimator` | 公开货代计费算式 |
-
-**聊天/客服类模块**（chat/support）：
-
-| 数据维度 | 搜索关键词 | 期望数据源 |
-|---------|-----------|----------|
-| RAG 检索 | `vector_search\|embedding\|chroma` | pgvector/Chroma 向量库 |
-| LLM 响应 | `llm_client\|openai\|deepseek` | LLM API |
-| 商家知识库 | `merchant_knowledge` | 商家上传数据 |
-| 会话历史 | `session\|conversation` | DB 存储 |
-
-**广告投放类模块**（ads/ad-optimizer）：
-
-| 数据维度 | 搜索关键词 | 期望数据源 |
-|---------|-----------|----------|
-| 广告数据 | `facebook_ads\|google_ads\|tiktok_ads` | 平台 API |
-| 转化数据 | `conversion\|click_through` | 平台回调/追踪 |
-| 创意素材 | `creative\|asset\|image_gen` | 用户上传 / AI 生成 |
+**关键检查**：搜索 `mock\|fake\|sample_data\|dummy\|hardcoded\|fallback_value` 定位可疑数据源。
 
 ## 输出格式
 
@@ -143,8 +121,8 @@ description: "数据源真实性审计。用法：/audit-data <模块名>，如 
 
 ## 注意事项
 
-- 重点关注 `app/services/export/` 下各模块的数据获取逻辑
-- 检查 `DATA_MODE` 环境变量对数据源的影响（`development` vs `production`）
-- 验证 `MARKET_SIGNAL_ALLOW_LEGACY_TRENDS=0` 时是否真的只用缓存
-- 禁止合成假贸易额（AGENTS.md 硬规则：禁止 synthetic 假贸易额）
-- 检查 `DataSourceConnectionError` 是否正确抛出而非静默降级为 0
+- 重点检查服务层/数据获取层的数据来源逻辑
+- 检查项目是否有环境模式切换（如 `development` vs `production`）导致数据源变化
+- 检查数据连接失败时是否正确抛出异常，而非静默降级为 0 或空值
+- 禁止合成假数据（如果项目有此类规则，在 `AGENTS.md` 或类似文件中查找）
+- 特别关注“看起来像真实数据但实际是硬编码”的情况

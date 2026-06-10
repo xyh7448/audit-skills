@@ -17,15 +17,21 @@ description: "功能全景审计。用法：/audit-feat <模块名>，如 /audit
 
 ## 审计流程
 
-### 第一步：定位模块边界
+### 第一步：发现项目约定
+
+1. 用 `Read` 检查项目根目录是否有 `AGENTS.md`、`CONVENTIONS.md`、`.cursorrules` 等约定文件
+2. 用 `Glob` 查看项目目录结构，推断分层架构（如 `routers/`、`services/`、`models/` 或其他模式）
+3. 识别项目的技术栈和框架（FastAPI/Express/Django/Next.js 等）
+
+### 第二步：定位模块边界
 
 1. 用 `SearchCodebase` 按模块名语义搜索，定位核心文件
-2. 用 `Grep` 在 `app/routers/` 搜索模块相关路由注册
-3. 用 `SearchSymbol` 追踪路由函数 → Service 类的调用链
-4. 用 `Grep` 在 `app/models/` 搜索相关数据模型
-5. 用 `Glob` 搜索 `templates/` 和 `static/` 下的相关前端文件
+2. 用 `Grep` 搜索路由/控制器注册（按项目实际结构）
+3. 用 `SearchSymbol` 追踪入口函数 → 核心服务类的调用链
+4. 用 `Grep` 搜索相关数据模型
+5. 用 `Glob` 搜索相关前端文件（模板/组件/页面）
 
-### 第二步：执行八维审计
+### 第三步：执行八维审计
 
 #### 1. 功能完整性
 
@@ -37,10 +43,10 @@ description: "功能全景审计。用法：/audit-feat <模块名>，如 /audit
 
 #### 2. 架构合理性
 
-- 是否符合项目分层架构（Router → Service → Model）
+- 是否符合项目自身分层架构（第一步发现的结构）
 - 是否存在重复实现（同一功能多处实现）
-- 是否存在职责混乱（Router 直接查 DB、Service 处理 HTTP 逻辑）
-- 检查是否违反 `AGENTS.md` 中的硬规则（如 Admin 命名隔离、User/Admin 隔离）
+- 是否存在职责混乱（如路由层直接查 DB、控制器处理业务逻辑）
+- 检查是否违反项目级约定规则（如 `AGENTS.md`、`CONVENTIONS.md` 中的硬规则）
 
 #### 3. 数据流
 
@@ -55,12 +61,12 @@ description: "功能全景审计。用法：/audit-feat <模块名>，如 /audit
 - 如何处理（转换 / 计算 / 聚合）
 - 如何返回（序列化 / 格式化）
 - 中间是否丢失字段
-- **数据是否被中间层静默清空或替换**（如 `_with_section_transparency` 类函数将 list 数据替换为空 dict，用 `Grep` 搜索 `section_transparency|_with_section|data\s*=\s*\{\}|data\.clear\(\)` 等模式）
+- **数据是否被中间层静默清空或替换**（用 `Grep` 搜索 `data\s*=\s*\{\}|data\.clear\(\)|\.pop\(|return\s+\{\}` 等模式，这是常见但致命的 bug 类型）
 
 #### 4. API 层
 
 - 路由设计：RESTful 规范、URL 命名
-- 参数校验：Pydantic Schema、Query/Body 参数
+- 参数校验：请求 Schema / DTO / Validator
 - 返回格式：统一响应结构、错误码
 - HTTP 方法：GET/POST/PUT/DELETE 使用正确性
 
@@ -77,7 +83,7 @@ description: "功能全景审计。用法：/audit-feat <模块名>，如 /audit
 - 索引是否充分（高频查询字段）
 - 是否存在冗余字段
 - 关联关系是否正确（外键、级联）
-- Alembic 迁移是否同步
+- 数据库迁移是否同步（Alembic / Prisma / Knex / Django migrations 等）
 
 #### 7. 异常处理
 
