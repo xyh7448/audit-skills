@@ -1,4 +1,4 @@
-# Audit Skills
+# 项目代码审计官 Skills
 
 一套标准化的 AI Agent 审计技能集，让 Agent 按照固定方法论自动检查系统质量。
 
